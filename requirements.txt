@@ -1,0 +1,6 @@
+torch>=2.0.0
+torchvision>=0.15.0         # For CIFAR-10 dataset and image transformations
+transformers>=4.30.0        # Hugging Face Transformers library
+pillow>=9.0.0               # For image loading / processing
+numpy>=1.24.0               # For numerical operations
+matplotlib>=3.7.0         # For plotting and visualization
