@@ -10,7 +10,7 @@ import os
 # Import your CNN model
 import sys
 sys.path.insert(0, '../')
-from analysis.cnn_test import CIFAR10CNN
+from models.cnn_test import CIFAR10CNN
 
 # CIFAR-10 classes
 CIFAR10_CLASSES = ['airplane', 'automobile', 'bird', 'cat', 'deer', 
