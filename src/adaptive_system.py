@@ -218,26 +218,92 @@ if __name__ == "__main__":
     
     # TEST ON IMAGES
     class_names = test_dataset.classes
-    
-    print("-"*50)
-    print("\n""TESTING ADAPTIVE CLASSIFIER ON 5 IMAGES""")
-    print("-"*50)
-    
-    for i in range(5):
+        
+    print("="*70)
+    print(f"\nTESTING ADAPTIVE CLASSIFIER")
+    print("="*70)
+
+    # Configuration
+    x = 10000  # Number of images to test (change to 5, 100, or 1000)
+
+    # Tracking variables
+    total_latency = 0.0
+    cnn_count = 0
+    vit_count = 0
+    correct = 0
+    cnn_latencies = []
+    vit_latencies = []
+
+    # Run predictions
+    print(f"\nProcessing {x} test images...")
+    for i in range(x):
         img, true_label = test_dataset[i]
         pred, model_used, confidence, latency, stats = adaptive.predict(img)
         
-        print(f"\nImage {i+1}:")
-        print(f"True Label: {class_names[true_label]}")
-        print(f"Predicted Label: {class_names[pred]} , Confidence: {confidence:.4f}")
-        print(f"Routed to: {model_used}")
-        print(f"Latency: {latency:.2f} ms")
-        
-        print("-"*50)
-        print(f"CNN Confidence: {stats['cnn_confidence']:.4f}")
+        # Track metrics
+        total_latency += latency
+        correct += (pred == true_label)
+        cnn_count += (stats['routed_to'] == 'CNN')
+        vit_count += (stats['routed_to'] == 'ViT')
+        cnn_latencies.append(stats['cnn_latency'])
         if stats['routed_to'] == 'ViT':
-            print(f"ViT Latency: {stats['vit_latency']:.2f} ms")
-        print("-"*50)
+            vit_latencies.append(stats['vit_latency'])
+        
+        # Progress indicator (every 100 images)
+        if (i + 1) % 100 == 0:
+            print(f"  Processed {i+1}/{x} images...")
+
+    # Calculate metrics
+    accuracy = 100 * correct / x
+    avg_latency = total_latency / x
+    avg_cnn_latency = sum(cnn_latencies) / len(cnn_latencies)
+    avg_vit_latency = sum(vit_latencies) / len(vit_latencies) if vit_latencies else 0
+
+    # Baselines ( ADJUST BASED ON ANALYSIS )
+    vit_baseline_latency = 96.13  # ms
+    vit_baseline_accuracy = 99.00  # %
+    speedup = vit_baseline_latency / avg_latency
+
+    # Print results
+    print(f"\n{'='*70}")
+    print("BENCHMARK RESULTS")
+    print("="*70)
+
+    print(f"\nOVERALL PERFORMANCE")
+    print("-"*70)
+    print(f"  Test Images:     {x}")
+    print(f"  Correct:         {correct}")
+    print(f"  Accuracy:        {accuracy:.2f}%")
+    print(f"  Avg Latency:     {avg_latency:.2f} ms")
+
+    print(f"\nROUTING STATISTICS")
+    print("-"*70)
+    print(f"  CNN Usage:       {cnn_count} images ({100*cnn_count/x:.1f}%)")
+    print(f"  ViT Usage:       {vit_count} images ({100*vit_count/x:.1f}%)")
+
+    print(f"\nLATENCY BREAKDOWN")
+    print("-"*70)
+    print(f"  Avg CNN Latency: {avg_cnn_latency:.2f} ms (always runs)")
+    print(f"  Avg ViT Latency: {avg_vit_latency:.2f} ms (when routed)")
+    print(f"  Avg Total:       {avg_latency:.2f} ms")
+
+    print(f"\nBASELINE COMPARISON")
+    print("-"*70)
+    print(f"  ViT-only Accuracy: {vit_baseline_accuracy:.2f}%")
+    print(f"  ViT-only Latency:  {vit_baseline_latency:.2f} ms")
+    print(f"  Adaptive Accuracy: {accuracy:.2f}%")
+    print(f"  Adaptive Latency:  {avg_latency:.2f} ms")
+
+    print(f"\nPERFORMANCE GAINS")
+    print("-"*70)
+    print(f"  Speedup vs ViT:  {speedup:.2f}x")
+    print(f"  Accuracy Retention: {accuracy/vit_baseline_accuracy:.2%}")
+
+    print(f"\n{'='*70}")
+
+        
+        
+
         
         
         
